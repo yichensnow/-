@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>何幸此相逢 · 恶人谷 - 风雪长歌</title>
+    <meta name="description" content="剑网3 恶人谷「何幸此相逢」帮会。不是恶人，只是不想被这江湖改变。昆仑之巅，共饮烈酒，同看风雪。">
+    <style>
+        :root {
+            --bg: #0a0605;
+            --surface: #110c0a;
+            --border-dark: #1f1612;
+            --blood: #8b1e1e;
+            --blood-light: #b52e2e;
+            --gold: #9e8646;
+            --gold-dim: #6b5a2e;
+            --text: #cbc1b3;
+            --text-dim: #877e72;
+            --font-poem: "STKaiti", "KaiTi", "楷体", "Noto Serif SC", serif;
+            --font-body: "STSong", "SimSun", "宋体", "Noto Serif SC", serif;
+            --font-ui: "PingFang SC", "Microsoft YaHei", "微软雅黑", sans-serif;
+            --shadow-blood: 0 0 20px rgba(139, 30, 30, 0.4);
+            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            background-image: radial-gradient(ellipse at 40% 20%, rgba(139, 30, 30, 0.1) 0%, transparent 55%),
+                              radial-gradient(ellipse at 70% 70%, rgba(158, 134, 70, 0.06) 0%, transparent 55%),
+                              repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--blood); border-radius: 3px; }
+
+        /* 雪花画布 */
+        #snowCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ========== 鬼斧令 · 主视觉 ========== */
+        .hero {
+            position: relative;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 100px 40px 120px;
+            text-align: center;
+            overflow: hidden;
+            z-index: 2;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><path d="M0 200 Q200 50 400 200 T800 200" fill="none" stroke="%238b1e1e" stroke-width="0.8" opacity="0.15"/><path d="M0 230 Q200 80 400 230 T800 230" fill="none" stroke="%239e8646" stroke-width="0.6" opacity="0.1"/></svg>') no-repeat center;
+            background-size: cover;
+            pointer-events: none;
+        }
+        .hero-axe {
+            font-size: 72px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px var(--blood));
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .hero-label {
+            display: inline-block;
+            font-family: var(--font-ui);
+            font-size: 11px;
+            letter-spacing: 8px;
+            color: var(--gold-dim);
+            border: 1px solid var(--blood);
+            padding: 8px 30px;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+        .hero-title {
+            font-family: var(--font-poem);
+            font-size: 62px;
+            font-weight: normal;
+            letter-spacing: 12px;
+            color: #e0d3c0;
+            text-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 10px var(--blood);
+            margin-bottom: 15px;
+        }
+        .hero-title span { color: var(--blood-light); }
+        .hero-sub {
+            font-family: var(--font-poem);
+            font-size: 20px;
+            color: var(--text-dim);
+            letter-spacing: 6px;
+            margin-bottom: 25px;
+        }
+        .hero-poem {
+            font-family: var(--font-poem);
+            font-size: 16px;
+            color: var(--gold);
+            font-style: italic;
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+            opacity: 0.75;
+            line-height: 2;
+        }
+        .hero-btns { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 14px 38px;
+            font-family: var(--font-ui);
+            font-size: 15px;
+            letter-spacing: 3px;
+            text-decoration: none;
+            border-radius: 2px;
+            transition: var(--transition);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-blood {
+            background: linear-gradient(135deg, var(--blood), #5c1414);
+            color: #fff;
+            border: 1px solid var(--blood-light);
+            box-shadow: var(--shadow-blood);
+        }
+        .btn-blood:hover { box-shadow: 0 0 30px rgba(139,30,30,0.7); transform: translateY(-2px); }
+        .btn-ghost {
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold-dim);
+        }
+        .btn-ghost:hover { background: rgba(158,134,70,0.1); border-color: var(--gold); }
+
+        /* ========== 残碑模块（通用） ========== */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 70px 40px;
+            position: relative;
+            z-index: 2;
+        }
+        .section-head {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .section-knot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .section-knot .line { width: 45px; height: 1px; background: var(--blood); opacity: 0.5; }
+        .section-knot .sigil { font-size: 24px; color: var(--blood-light); }
+        .section-head h2 {
+            font-family: var(--font-poem);
+            font-size: 36px;
+            letter-spacing: 8px;
+            color: #ccc0af;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+            margin-bottom: 10px;
+        }
+        .section-head .sub { font-size: 14px; color: var(--gold-dim); letter-spacing: 4px; }
+
+        /* 红尘引 */
+        .story-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.8fr;
+            gap: 30px;
+            background: var(--surface);
+            border: 1px solid #231814;
+            padding: 30px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .story-grid::before {
+            content: '';
+            position: absolute;
+            left: 20px; top: 20px;
+            width: 30px; height: 30px;
+            border-left: 1px solid var(--blood);
+            border-top: 1px solid var(--blood);
+            opacity: 0.3;
+        }
+        .story-visual {
+            background: linear-gradient(135deg, rgba(139,30,30,0.15), rgba(0,0,0,0.6));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-poem);
+            font-size: 40px;
+            color: var(--blood-light);
+            text-shadow: 0 0 30px rgba(139,30,30,0.8);
+            border: 1px dashed #3a2218;
+            padding: 30px;
+            text-align: center;
+        }
+        .story-visual .en { font-size: 14px; color: var(--gold-dim); letter-spacing: 3px; margin-top: 10px; }
+        .story-text h3 {
+            font-family: var(--font-poem);
+            font-size: 26px;
+            color: var(--blood-light);
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--blood);
+            padding-left: 20px;
+        }
+        .story-text p {
+            color: var(--text-dim);
+            line-height: 2.2;
+            margin-bottom: 18px;
+            font-size: 15px;
+            text-align: justify;
+        }
+
+        /* 百战诀 */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .member-card {
+            background: var(--surface);
+            border: 1px solid #1f1814;
+            padding: 25px 15px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+        }
+        .member-card:hover {
+            border-color: var(--blood);
+            box-shadow: 0 0 25px rgba(139,30,30,0.3);
+            transform: translateY(-4px);
+        }
+        .member-card .class-icon { font-size: 36px; margin-bottom: 12px; filter: drop-shadow(0 0 8px var(--blood)); }
+        .member-card .name { font-family: var(--font-poem); font-size: 20px; letter-spacing: 4px; color: #dacbb5; }
+        .member-card .title { font-size: 12px; color: var(--gold); letter-spacing: 3px; margin: 6px 0; }
+        .member-card .role { font-size: 12px; color: var(--text-dim); }
+
+        /* 阎罗帖 */
+        .events-list { max-width: 800px; margin: 0 auto; }
+        .event {
+            background: var(--surface);
+            border: 1px solid #1f1814;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: var(--transition);
+            border-left: 3px solid var(--blood);
+        }
+        .event:hover { background: #160f0c; border-left-color: var(--blood-light); box-shadow: 0 0 20px rgba(0,0,0,0.6); }
+        .event .date { font-size: 12px; color: var(--gold-dim); letter-spacing: 3px; margin-bottom: 6px; }
+        .event h4 { font-family: var(--font-poem); font-size: 20px; letter-spacing: 4px; color: #dacbb5; margin-bottom: 8px; }
+        .event p { font-size: 13px; color: var(--text-dim); }
+
+        /* 三生路 */
+        .recruit {
+            background: var(--surface);
+            border: 1px solid var(--blood);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .recruit::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(139,30,30,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .recruit h2 {
+            font-family: var(--font-poem);
+            font-size: 30px;
+            color: var(--blood-light);
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+        }
+        .recruit-poem { font-style: italic; color: var(--gold); margin-bottom: 30px; letter-spacing: 3px; }
+        .recruit-list {
+            list-style: none;
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        .recruit-list li {
+            padding: 8px 0;
+            color: var(--text-dim);
+            border-bottom: 1px dashed #2a1e16;
+        }
+        .recruit-list li::before { content: '⚔️'; margin-right: 10px; color: var(--blood); }
+
+        /* 聚义厅 (QQ群/YY) */
+        .contact-cards {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .contact-card {
+            background: var(--surface);
+            border: 1px solid var(--blood);
+            padding: 30px 40px;
+            text-align: center;
+            min-width: 220px;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text);
+            display: block;
+        }
+        .contact-card:hover {
+            border-color: var(--blood-light);
+            box-shadow: var(--shadow-blood);
+            transform: translateY(-3px);
+        }
+        .contact-card .cc-icon { font-size: 36px; margin-bottom: 12px; }
+        .contact-card .cc-title { font-family: var(--font-poem); font-size: 22px; letter-spacing: 4px; color: #dacbb5; margin-bottom: 8px; }
+        .contact-card .cc-desc { font-size: 13px; color: var(--gold-dim); letter-spacing: 2px; }
+
+        /* ========== 全站播放器 ========== */
+        .music-player {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            z-index: 999;
+            background: rgba(10, 6, 5, 0.9);
+            border: 1px solid var(--blood);
+            border-radius: 4px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(0,0,0,0.8);
+            transition: opacity 0.3s;
+        }
+        .music-player.mini {
+            padding: 10px;
+        }
+        .music-player button {
+            background: none;
+            border: 1px solid var(--blood);
+            color: var(--blood-light);
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px; height: 36px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .music-player button:hover { background: var(--blood); color: #fff; }
+        .music-info {
+            font-family: var(--font-ui);
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .progress-bar {
+            width: 80px;
+            height: 3px;
+            background: #2a1e16;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: var(--blood-light);
+            width: 0%;
+            border-radius: 2px;
+        }
+        .volume-slider {
+            width: 60px;
+            height: 3px;
+            background: #2a1e16;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .volume-slider .vol-fill {
+            height: 100%;
+            background: var(--gold-dim);
+            width: 70%;
+            border-radius: 2px;
+        }
+        @media (max-width: 600px) {
+            .music-player { left: 10px; bottom: 10px; padding: 8px 12px; gap: 8px; }
+            .progress-bar { width: 40px; }
+            .volume-slider { width: 40px; }
+        }
+
+        /* ========== QQ浮动列表 ========== */
+        .qq-float {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 998;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .qq-toggle {
+            width: 50px; height: 50px;
+            background: rgba(10, 6, 5, 0.9);
+            border: 1px solid var(--blood);
+            border-radius: 50%;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            transition: 0.3s;
+            color: var(--blood-light);
+        }
+        .qq-toggle:hover { background: var(--blood); color: #fff; }
+        .qq-list {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+            background: rgba(10, 6, 5, 0.9);
+            border: 1px solid var(--blood);
+            border-radius: 4px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+        .qq-list.open { display: flex; }
+        .qq-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-family: var(--font-ui);
+            font-size: 13px;
+            text-decoration: none;
+            padding: 6px 8px;
+            border-radius: 2px;
+            transition: 0.2s;
+        }
+        .qq-item:hover { background: rgba(139,30,30,0.2); }
+        .qq-avatar {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blood), #333);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: 1px solid var(--blood-light);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--border-dark);
+            color: var(--text-dim);
+            font-size: 13px;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 2;
+        }
+        .footer .verse {
+            font-family: var(--font-poem);
+            color: var(--gold-dim);
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        .disclaimer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed #2a1e16;
+            font-size: 11px;
+            color: #5c5347;
+            line-height: 1.8;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.7;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .members-grid { grid-template-columns: repeat(2, 1fr); }
+            .story-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .hero-title { font-size: 38px; }
+            .members-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 昆仑落雪 Canvas -->
+<canvas id="snowCanvas"></canvas>
+
+<!-- 鬼斧令 -->
+<section class="hero">
+    <div class="hero-axe">🪓</div>
+    <div class="hero-label">昆仑 · 恶人谷</div>
+    <h1 class="hero-title">何幸<span>此相逢</span></h1>
+    <p class="hero-sub">一踏三生远常伦</p>
+    <p class="hero-poem">“风霜不折恶人骨，<br> 红尘有幸识诸君。”</p>
+    <div class="hero-btns">
+        
+        <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+    <a href="http://139.155.136.95/hexing.php" target="_blank" style="display:inline-block; padding:14px 38px; background:linear-gradient(135deg, #8b1e1e, #5c1414); color:#fff; border:1px solid #b52e2e; border-radius:2px; font-family:'PingFang SC', '微软雅黑', sans-serif; font-size:15px; letter-spacing:3px; text-decoration:none; box-shadow:0 0 20px rgba(139,30,30,0.4); font-weight:600;">
+        🩸 入此谷中
+    </a>
+        </a>
+    <a href="http://139.155.136.95/forum.php" target="_blank" style="display:inline-block; padding:14px 38px; background:transparent; color:#9e8646; border:1px solid #6b5a2e; border-radius:2px; font-family:'PingFang SC', '微软雅黑', sans-serif; font-size:15px; letter-spacing:3px; text-decoration:none; font-weight:600;">
+        📜 永不受苦
+    </a>
+</div>
+</section>
+
+<!-- 红尘引 -->
+<div class="section">
+    <div class="section-head">
+        <div class="section-knot"><span class="line"></span><span class="sigil">⚔️</span><span class="line"></span></div>
+        <h2>红尘引</h2>
+        <p class="sub">“不是恶人，只是不想被这江湖改变。”</p>
+    </div>
+    <div class="story-grid">
+        <div class="story-visual">🏮<br><span class="en">MEET</span></div>
+        <div class="story-text">
+            <h3>何幸此相逢</h3>
+            <p>我们是一群聚集在恶人谷的侠客，不慕正道虚名，只愿快意恩仇。在这里，没有虚伪的客套，只有可以把后背托付给彼此的兄弟姐妹。</p>
+            <p>帮会名为“何幸此相逢”，取自剑网3同名歌曲。正如歌中所唱——“当少年已跋涉过红尘千种温柔，又重回到那个渡口。” 无论你是浪迹天涯的归人，还是初入江湖的新秀，这里永远有一盏灯为你而留。</p>
+            <p>我们追求的不是称霸武林，而是在这昆仑之巅，与志同道合之人，共饮一壶烈酒，同看一场风雪。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 百战诀 -->
+<div class="section">
+    <div class="section-head">
+        <div class="section-knot"><span class="line"></span><span class="sigil">🗡️</span><span class="line"></span></div>
+        <h2>百战诀</h2>
+        <p class="sub">“血洒昆仑志未消，生死状上刻名号”</p>
+    </div>
+    <div class="members-grid">
+        <div class="member-card">
+            <div class="class-icon">🐺</div>
+            <div class="name">血修罗</div>
+            <div class="title">帮主 · 攻防总指挥</div>
+            <div class="role">霸刀 · 北傲诀</div>
+        </div>
+        <div class="member-card">
+            <div class="class-icon">🌸</div>
+            <div class="name">彼岸花</div>
+            <div class="title">副帮主 · 人事掌灯</div>
+            <div class="role">七秀 · 云裳心经</div>
+        </div>
+        <div class="member-card">
+            <div class="class-icon">🐉</div>
+            <div class="name">判官笔</div>
+            <div class="title">青龙堂主 · 战场尖刀</div>
+            <div class="role">天策 · 傲血战意</div>
+        </div>
+        <div class="member-card">
+            <div class="class-icon">🐅</div>
+            <div class="name">夜不收</div>
+            <div class="title">白虎堂主 · 副本开荒</div>
+            <div class="role">纯阳 · 紫霞功</div>
+        </div>
+        <div class="member-card">
+            <div class="class-icon">🔥</div>
+            <div class="name">离火</div>
+            <div class="title">朱雀堂主 · 情报暗杀</div>
+            <div class="role">唐门 · 惊羽诀</div>
+        </div>
+        <div class="member-card">
+            <div class="class-icon">🐢</div>
+            <div class="name">玄甲</div>
+            <div class="title">玄武堂主 · 后勤铁壁</div>
+            <div class="role">少林 · 易筋经</div>
+        </div>
+    </div>
+</div>
+
+<!-- 阎罗帖 -->
+<div class="section">
+    <div class="section-head">
+        <div class="section-knot"><span class="line"></span><span class="sigil">📜</span><span class="line"></span></div>
+        <h2>阎罗帖</h2>
+        <p class="sub">“凡我铁蹄踏过处，浩气盟血染山河”</p>
+    </div>
+    <div class="events-list">
+        <div class="event">
+            <div class="date">甲辰年 · 霜月</div>
+            <h4>马嵬驿 · 血战八荒</h4>
+            <p>以一帮之力守下马嵬驿据点，连拒浩气盟三波攻势，阵斩敌首二百余。帮主血修罗亲斩对方大将，扬我恶人谷天威。</p>
+        </div>
+        <div class="event">
+            <div class="date">甲辰年 · 露月</div>
+            <h4>阆风悬城 · 英雄全通</h4>
+            <p>PVE精锐不堕恶人之名，以钢铁般的执行力拿下阆风悬城25人英雄难度全服首甲，让世人知我恶人谷非仅有莽夫之勇。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 三生路 + 聚义厅 -->
+<div class="section">
+    <div class="recruit">
+        <h2>⚔️ 三生路 ⚔️</h2>
+        <p class="recruit-poem">“当一个决意以恶人谷为家之人来到这里，立下永不背弃之誓。”</p>
+        <ul class="recruit-list">
+            <li>阵营：唯恶人谷侠士，中立可入帮后转阵营</li>
+            <li>装分：PVP≥26万，新手可由帮会培养</li>
+            <li>活跃：周常参与小攻防/战场，拒绝尸体</li>
+            <li>入帮即兄弟，退帮即仇敌。黄泉路上，勿谓言之不预。</li>
+        </ul>
+        <a href="#" class="btn btn-blood">🩸 立下血誓 · 入帮</a>
+
+        <!-- 聚义厅 QQ群 / YY -->
+        <div style="display:flex; justify-content:center; gap:30px; margin-top:40px; flex-wrap:wrap;">
+
+    <!-- QQ群卡片（方案一：直接唤起QQ客户端） -->
+    <a href="tencent://message/?uin=1002015514&Site=&Menu=yes" style="display:block; text-decoration:none;">
+        <div style="background:#110c0a; border:1px solid #8b1e1e; padding:30px 40px; text-align:center; min-width:220px; border-radius:2px;">
+            <div style="font-size:36px; margin-bottom:12px;">🐧</div>
+            <div style="font-family:'STKaiti', 'KaiTi', '楷体', serif; font-size:22px; letter-spacing:4px; color:#dacbb5; margin-bottom:8px;">QQ群</div>
+            <div style="font-size:13px; color:#6b5a2e; letter-spacing:2px;">1002015514</div>
+        </div>
+    </a>
+
+    <!-- YY频道卡片 -->
+    <a href="https://www.yy.com/1459749520" target="_blank" rel="noopener noreferrer" style="display:block; text-decoration:none;">
+        <div style="background:#110c0a; border:1px solid #8b1e1e; padding:30px 40px; text-align:center; min-width:220px; border-radius:2px;">
+            <div style="font-size:36px; margin-bottom:12px;">🎙️</div>
+            <div style="font-family:'STKaiti', 'KaiTi', '楷体', serif; font-size:22px; letter-spacing:4px; color:#dacbb5; margin-bottom:8px;">YY频道</div>
+            <div style="font-size:13px; color:#6b5a2e; letter-spacing:2px;">1459749520</div>
+        </div>
+    </a>
+
+</div>
+
+</div>
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="verse">“虚空无处所，仿佛似琉璃。何幸此相逢，共守昆仑雪。”</div>
+    <p>© 2026 何幸此相逢 · 剑网3恶人谷帮会</p>
+    <div class="disclaimer">
+        <strong>免责声明</strong><br>
+        本网站为《剑侠情缘网络版叁》恶人谷玩家帮会“何幸此相逢”之自发交流平台，与珠海金山数字娱乐科技有限公司（西山居）无任何直接关联。<br>
+        网站内所使用的游戏相关图片、图标、门派设定、诗词等元素版权均归西山居所有。<br>
+        本站为非盈利性质，仅供帮会成员内部交流、招募及展示使用。若存在侵权内容，请联系帮会管理删除。
+    </div>
+</footer>
+
+<!-- 血箫古音 全站播放器 -->
+<div class="music-player" id="musicPlayer">
+    <button id="playBtn">▶</button>
+    <div class="music-info">昆仑雪·恶人谷</div>
+    <div class="progress-bar" id="progressBar">
+        <div class="fill" id="progressFill"></div>
+    </div>
+    <div class="volume-slider" id="volumeSlider">
+        <div class="vol-fill" id="volumeFill"></div>
+    </div>
+    <audio id="bgAudio" loop>
+        <!-- 替换为你的古风音乐直链，这里使用示例音频（可能需要联网） -->
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+</div>
+
+<!-- QQ 浮动列表 -->
+<div class="qq-float" id="qqFloat">
+    <div class="qq-list" id="qqList">
+        <a href="https://wpa.qq.com/msgrd?v=3&uin=123456789&site=qq&menu=yes" target="_blank" class="qq-item">
+            <div class="qq-avatar">🐺</div>
+            <span>血修罗 (帮主)</span>
+        </a>
+        <a href="https://wpa.qq.com/msgrd?v=3&uin=987654321&site=qq&menu=yes" target="_blank" class="qq-item">
+            <div class="qq-avatar">🌸</div>
+            <span>彼岸花 (副帮)</span>
+        </a>
+    </div>
+    <div class="qq-toggle" id="qqToggle">💬</div>
+</div>
+
+<script>
+    // ========== 雪花特效 ==========
+    (function() {
+        const canvas = document.getElementById('snowCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        const maxParticles = 80;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Snowflake {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * -height;
+                this.r = Math.random() * 3 + 1;
+                this.speed = Math.random() * 1.5 + 0.5;
+                this.wind = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.6 + 0.2;
+            }
+            update() {
+                this.y += this.speed;
+                this.x += this.wind;
+                if (this.y > height + 10) {
+                    this.reset();
+                    this.y = -10;
+                }
+                if (this.x < -10) this.x = width + 10;
+                if (this.x > width + 10) this.x = -10;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < maxParticles; i++) {
+            particles.push(new Snowflake());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    })();
+
+    // ========== 音乐播放器 ==========
+    (function() {
+        const audio = document.getElementById('bgAudio');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeFill = document.getElementById('volumeFill');
+        let isPlaying = false;
+
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                playBtn.textContent = '▶';
+            } else {
+                audio.play().catch(e => console.log('播放失败，请手动点击'));
+                playBtn.textContent = '⏸';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            const percent = (audio.currentTime / audio.duration) * 100 || 0;
+            progressFill.style.width = percent + '%';
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const seekTime = (clickX / width) * audio.duration;
+            audio.currentTime = seekTime;
+        });
+
+        volumeSlider.addEventListener('click', (e) => {
+            const rect = volumeSlider.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const vol = Math.max(0, Math.min(1, clickX / width));
+            audio.volume = vol;
+            volumeFill.style.width = (vol * 100) + '%';
+        });
+
+        // 初始音量
+        audio.volume = 0.7;
+        volumeFill.style.width = '70%';
+    })();
+
+    // ========== QQ浮动列表 ==========
+    (function() {
+        const qqToggle = document.getElementById('qqToggle');
+        const qqList = document.getElementById('qqList');
+        let open = false;
+
+        qqToggle.addEventListener('click', () => {
+            open = !open;
+            if (open) {
+                qqList.classList.add('open');
+            } else {
+                qqList.classList.remove('open');
+            }
+        });
+
+        // 点击外部关闭
+        document.addEventListener('click', (e) => {
+            const float = document.getElementById('qqFloat');
+            if (open && !float.contains(e.target)) {
+                open = false;
+                qqList.classList.remove('open');
+            }
+        });
+    })();
+</script>
+</body>
+</html>
